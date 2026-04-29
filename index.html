@@ -109,7 +109,8 @@ const InteractiveInsight = ({ title, diagnostic, actionPlan, type = "info" }) =>
 
 const GapBadge = ({ goValue, brValue, inverse = false, suffix = "" }) => {
   const diff = goValue - brValue;
-  const isPositive = inverse ? diff <= 0 : diff >= 0;
+  // A lógica reversa evita o uso do sinal de "menor que" que corrompe compiladores em HTML
+  const isPositive = inverse ? 0 >= diff : diff >= 0;
   
   if (diff === 0) return null;
 
@@ -129,8 +130,8 @@ const SageStatusBadge = ({ atual, meta, min, inverse = false }) => {
   let label = "Nível 1-2 (Alerta)";
   
   if (inverse) { 
-    if (atual <= meta) { status = "success"; label = "Nível 4-5 (Meta)"; }
-    else if (atual <= min) { status = "warning"; label = "Nível 3 (Margem)"; }
+    if (meta >= atual) { status = "success"; label = "Nível 4-5 (Meta)"; }
+    else if (min >= atual) { status = "warning"; label = "Nível 3 (Margem)"; }
   } else {
     if (atual >= meta) { status = "success"; label = "Nível 4-5 (Meta)"; }
     else if (atual >= min) { status = "warning"; label = "Nível 3 (Mínimo)"; }
@@ -150,7 +151,8 @@ const SageStatusBadge = ({ atual, meta, min, inverse = false }) => {
 }
 
 const SageProgressBar = ({ label, atual, meta, min, colorClass }) => {
-  const isDanger = atual < min;
+  // Substituído 'atual < min' por 'min > atual' para evitar a quebra do parser do Jekyll no GitHub
+  const isDanger = min > atual;
   const barColor = isDanger ? 'bg-red-500' : colorClass;
   
   return (
@@ -336,10 +338,10 @@ export default function App() {
               <p>O SENAI Goiás se consolidou como uma verdadeira potência de eficiência e escala, apresentando um crescimento de matrículas quase <strong>5 vezes superior à média nacional (+49,5% vs +10,2%)</strong>, tudo isso operando com um custo hora-aluno altamente otimizado (R$ 5,45 mais barato que o Brasil). No entanto, a lei da física operacional cobra seu preço: essa tração agressiva de volume achatou a nossa margem de qualidade educacional (IDAP), que estacionou em 7.4 (apenas no limite Mínimo aceitável do SAGE, distante da meta de 7.9).</p>
             }
             actionPlan={
-              <>
+              <ul className="list-disc pl-5 space-y-2">
                 <li><strong>Giro de Qualidade:</strong> É imperativo que os ganhos de eficiência financeira (sobra de caixa pelo baixo custo-hora) sejam reinvestidos imediatamente no corpo docente (Capacitação Unindústria - Ind. 7) e na infraestrutura dos laboratórios.</li>
                 <li><strong>Blindagem do SAEP:</strong> Instituir na rotina das Escolas Mistas e UEPs simulados preparatórios rigorosos, alinhados à matriz de referência do SAEP, para garantir que o aumento de turmas não signifique queda na proficiência.</li>
-              </>
+              </ul>
             }
           />
         </section>
@@ -412,10 +414,10 @@ export default function App() {
               <p>Os dados revelam um paradoxo comercial perigoso para a marca. Goiás possui um portfólio quase 100% voltado para a indústria (Ind. 11), a taxa de emprego é invejável (93,8%) e o diploma causa forte impacto financeiro na vida do egresso (31,1% de aumento de renda). <strong>No entanto, a 'Preferência das Empresas' pelo SENAI-GO (64,7%) é quase 30 pontos percentuais menor que a média nacional (92,4%).</strong> Conclusão estratégica: A indústria está contratando nossos alunos pela carência de mão de obra e necessidade produtiva, mas não necessariamente enxergam o SENAI-GO como a "boutique" ou "selo premium" definitivo de formação como ocorre no resto do país.</p>
             }
             actionPlan={
-              <>
+              <ul className="list-disc pl-5 space-y-2">
                 <li><strong>Posicionamento de Marca B2B:</strong> Reativar os Comitês Técnicos Setoriais não apenas para validar cursos, mas para criar relacionamento de alto nível com os Diretores de RH e CEO's das grandes indústrias de Goiás.</li>
                 <li><strong>Inovação com o SAGA (Ind. 12):</strong> Aumentar vertiginosamente o uso da plataforma SAGA SENAI de Inovação. Ao colocar os alunos para resolverem problemas *reais* das indústrias locais ainda durante o curso, o empresário vivencia o diferencial intelectual da instituição na prática, elevando a percepção da marca.</li>
-              </>
+              </ul>
             }
           />
         </section>
@@ -467,10 +469,10 @@ export default function App() {
               <p>A correlação entre esses três indicadores dita a sustentabilidade futura da operação. O DR Goiás atrai muito bem novos alunos (graças ao forte crescimento), porém o desafio atual é construir uma <strong>Jornada de Aprendizado Contínuo (Long Life Learning)</strong>. O indicador de Fidelização atual (15,3%) mostra que a imensa maioria dos alunos passa pelo SENAI, conclui seu curso básico e não retorna, evidenciando uma perda de faturamento "dentro de casa".</p>
             }
             actionPlan={
-              <>
+              <ul className="list-disc pl-5 space-y-2">
                 <li><strong>Automação de Upsell (Cross-selling de Trilhas):</strong> Utilizar sistemas de CRM para enviar ofertas direcionadas no momento exato em que o aluno forma no FIC. Exemplo: Concluiu Eletricista Básico? Oferecer imediatamente matrícula com 20% off para Técnico em Eletrotécnica.</li>
                 <li><strong>Capacitação Docente Focada em Retenção:</strong> Os 40h/ano exigidos pelo SAGE 7 devem priorizar trilhas da Unindústria sobre "Mentoria", "Engajamento Digital" e "Acolhimento". O professor precisa ser o primeiro vendedor do próximo curso do aluno.</li>
-              </>
+              </ul>
             }
           />
         </section>
@@ -544,11 +546,11 @@ export default function App() {
                 <p>Os dados de conclusão expõem a maior vulnerabilidade operacional e estratégica de Goiás frente ao pacto SAGE 2026. <strong>A instituição encontra-se na zona de alerta (abaixo do Mínimo/Nível 1) em ambos os indicadores de Cursos Técnicos (Ind. 4 Presencial e Ind. 6 EaD), e também falha no mínimo exigido para o FIC EaD (Ind. 5).</strong> Apenas o formato "curto e presencial" (FIC Presencial) performa com segurança. O distanciamento digital e a duração longa da jornada estão triturando as turmas antes da formatura.</p>
               }
               actionPlan={
-                <>
+                <ul className="list-disc pl-5 space-y-2">
                   <li><strong>Força-Tarefa de Retenção Técnica:</strong> Implementar urgentemente um comitê gestor focado unicamente nos Itinerários Técnicos. A evasão de 35% no presencial sugere problemas na aderência do design instrucional ou choque de expectativa do aluno com o mercado real.</li>
                   <li><strong>Onboarding e Tutoria Preditiva EaD:</strong> A modalidade a distância está sangrando (evasão &gt; 40%). Instituir a figura do *Customer Success Educacional*. Se o aluno não logar no AVA nos primeiros 10 dias, acionar protocolos de resgate via WhatsApp. Não se pode gerir EaD apenas despejando conteúdo na plataforma.</li>
                   <li><strong>Acolhimento Biopsicossocial:</strong> Como o abandono técnico costuma ter causas socioeconômicas, reforçar a comunicação das políticas de auxílio e flexibilização da rede de apoio ao aluno das UEPs.</li>
-                </>
+                </ul>
               }
             />
           </Card>
@@ -560,7 +562,7 @@ export default function App() {
             icon={AlertTriangle}
             title="Raio-X da Evasão: Unidades e Portfólio Crítico" 
             description="Aprofundamento nos microdados de Conclusão (FIC e TEC). O SAGE avalia o DR de forma consolidada, mas a intervenção deve ser cirúrgica. Identificamos as Escolas e Eixos Tecnológicos específicos que estão tracionando a média estadual para a zona de penalização (-5 pontos)."
-            didacticText="A pontuação SAGE de um indicador cai para o negativo quando as taxas descem abaixo das faixas mínimas de tolerância (faixa vermelha < 79.99%). Atuar estritamente nas unidades de maior volumetria com baixas taxas de sucesso é a engenharia mais rápida para reverter o score geral do Departamento Regional."
+            didacticText="A pontuação SAGE de um indicador cai para o negativo quando as taxas descem abaixo das faixas mínimas de tolerância (faixa vermelha abaixo de 79.99%). Atuar estritamente nas unidades de maior volumetria com baixas taxas de sucesso é a engenharia mais rápida para reverter o score geral do Departamento Regional."
           />
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -618,11 +620,11 @@ export default function App() {
               </div>
             }
             actionPlan={
-              <>
+              <ul className="list-disc pl-5 space-y-2">
                 <li><strong>Intervenção na Unidade Roberto Mange:</strong> Criar um grupo de trabalho da Direção Regional imerso fisicamente na Faculdade para uma auditoria de processos e gestão de clima, implementando metas de recuperação semanais de alunos.</li>
                 <li><strong>Filtro de Entrada e Nivelamento para TI:</strong> A evasão extrema (5% de conclusão) em Cibersegurança e afins aponta frustração e choque com a complexidade analítica. Implementar testes de lógica básicos pré-matrícula ou nivelamento gamificado (Bootcamp) na primeira semana.</li>
                 <li><strong>Revisão Prática da Eletrotécnica:</strong> Para combater o desengajamento nas modalidades de Eletrotécnica e Automação, modernizar os laboratórios virtuais e exigir checkpoints presenciais mais frequentes e "mão na massa", conectando o aluno ao mercado real mais cedo.</li>
-              </>
+              </ul>
             }
           />
         </section>
