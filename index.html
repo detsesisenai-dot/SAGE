@@ -1,0 +1,627 @@
+import React, { useState } from 'react';
+import { 
+  Target, 
+  Lightbulb,
+  Globe2,
+  ArrowUpRight,
+  ArrowDownRight,
+  Layers,
+  Info,
+  ChevronDown,
+  ChevronUp,
+  ListChecks,
+  Flag,
+  Briefcase,
+  Users,
+  BarChart3,
+  Scale,
+  Cpu,
+  AlertTriangle,
+  Building2,
+  BookX
+} from 'lucide-react';
+
+// --- Base Components ---
+const Card = ({ children, className = '' }) => (
+  <div className={`bg-white border border-slate-200 rounded-xl p-5 md:p-6 shadow-sm hover:shadow-md transition-all ${className}`}>
+    {children}
+  </div>
+);
+
+const DidacticNote = ({ children }) => (
+  <p className="text-[11px] md:text-xs text-slate-500 mt-3 p-2 bg-slate-50 rounded-lg flex items-start gap-1.5 leading-snug border border-slate-100">
+    <Info size={14} className="min-w-[14px] text-blue-500 mt-0.5" />
+    <span>{children}</span>
+  </p>
+);
+
+const SectionIntro = ({ title, description, didacticText, icon: Icon }) => (
+  <div className="mb-8 mt-14">
+    <div className="flex items-center gap-3 mb-3">
+      <div className="p-2.5 bg-slate-900 text-white rounded-xl shadow-sm">
+        <Icon size={26} strokeWidth={2.5} />
+      </div>
+      <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">{title}</h2>
+    </div>
+    <p className="text-base text-slate-800 font-medium max-w-5xl leading-relaxed mb-4">
+      {description}
+    </p>
+    {didacticText && (
+      <div className="p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg text-sm text-slate-700 leading-relaxed max-w-5xl shadow-sm">
+        <strong className="text-blue-900 flex items-center gap-2 mb-1">
+          <Info size={16} /> Fundamento SAGE 2026:
+        </strong>
+        {didacticText}
+      </div>
+    )}
+  </div>
+);
+
+const InteractiveInsight = ({ title, diagnostic, actionPlan, type = "info" }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const colors = {
+    info: "border-blue-500 bg-blue-50 text-blue-900",
+    warning: "border-amber-500 bg-amber-50 text-amber-900",
+    danger: "border-red-500 bg-red-50 text-red-900",
+    success: "border-emerald-500 bg-emerald-50 text-emerald-900",
+  };
+
+  return (
+    <div className={`mt-8 border-l-4 rounded-r-xl overflow-hidden transition-all duration-300 shadow-sm ${colors[type]}`}>
+      <div className="p-5 md:p-6">
+        <div className="flex items-center gap-2 mb-3">
+          <Lightbulb size={22} className="text-current opacity-90" />
+          <span className="font-black text-lg uppercase tracking-tight">{title}</span>
+        </div>
+        <div className="text-sm md:text-base font-medium text-slate-800 leading-relaxed mb-5">
+          {diagnostic}
+        </div>
+        
+        <button 
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center gap-2 text-sm font-bold opacity-90 hover:opacity-100 transition-opacity focus:outline-none bg-black/5 px-4 py-2 rounded-lg"
+        >
+          {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+          {isOpen ? "Ocultar Diretrizes Estratégicas SAGE" : "Explorar Plano de Ação Estratégico"}
+        </button>
+      </div>
+
+      {isOpen && (
+        <div className="p-5 md:p-6 bg-white/80 border-t border-current/10 text-sm md:text-base">
+          <div className="flex items-center gap-2 mb-4 font-bold text-slate-900">
+            <ListChecks size={20} className="text-current opacity-80" />
+            Movimentos Estratégicos Recomendados:
+          </div>
+          <div className="text-slate-700 leading-relaxed ml-7 space-y-4">
+            {actionPlan}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const GapBadge = ({ goValue, brValue, inverse = false, suffix = "" }) => {
+  const diff = goValue - brValue;
+  const isPositive = inverse ? diff <= 0 : diff >= 0;
+  
+  if (diff === 0) return null;
+
+  return (
+    <span className={`inline-flex items-center gap-0.5 px-2 py-1 rounded text-[11px] font-bold shadow-sm ${
+      isPositive ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+    }`}>
+      {diff > 0 ? <ArrowUpRight size={12}/> : <ArrowDownRight size={12}/>}
+      {Math.abs(diff).toFixed(1).replace('.', ',')}{suffix} vs BR
+    </span>
+  );
+};
+
+// --- SAGE Specialized Components ---
+const SageStatusBadge = ({ atual, meta, min, inverse = false }) => {
+  let status = "danger"; 
+  let label = "Nível 1-2 (Alerta)";
+  
+  if (inverse) { 
+    if (atual <= meta) { status = "success"; label = "Nível 4-5 (Meta)"; }
+    else if (atual <= min) { status = "warning"; label = "Nível 3 (Margem)"; }
+  } else {
+    if (atual >= meta) { status = "success"; label = "Nível 4-5 (Meta)"; }
+    else if (atual >= min) { status = "warning"; label = "Nível 3 (Mínimo)"; }
+  }
+
+  const colors = {
+    success: "bg-emerald-100 text-emerald-800 border-emerald-300",
+    warning: "bg-amber-100 text-amber-800 border-amber-300",
+    danger: "bg-red-100 text-red-800 border-red-300"
+  };
+
+  return (
+    <div className={`text-[10px] uppercase font-black px-2 py-1 rounded border ${colors[status]} flex items-center gap-1 shadow-sm`}>
+      <Flag size={10} /> {label}
+    </div>
+  );
+}
+
+const SageProgressBar = ({ label, atual, meta, min, colorClass }) => {
+  const isDanger = atual < min;
+  const barColor = isDanger ? 'bg-red-500' : colorClass;
+  
+  return (
+    <div className="mb-6">
+      <div className="flex justify-between items-end mb-2">
+        <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">{label}</span>
+        <div className="flex items-center gap-2">
+          <span className={`text-base font-black ${isDanger ? 'text-red-600' : 'text-slate-900'}`}>{atual}%</span>
+          <SageStatusBadge atual={atual} meta={meta} min={min} />
+        </div>
+      </div>
+      
+      <div className="h-3.5 bg-slate-200 rounded-full overflow-hidden relative group shadow-inner">
+        <div className={`h-full ${barColor} rounded-full relative z-10 transition-all duration-1000 ease-out`} style={{ width: `${atual}%` }}></div>
+        <div className="absolute top-0 bottom-0 w-0.5 bg-amber-400 z-20 shadow-sm" style={{ left: `${min}%` }} title={`Mínimo SAGE: ${min}%`}></div>
+        <div className="absolute top-0 bottom-0 w-1 bg-emerald-500 z-20 shadow-sm" style={{ left: `${meta}%` }} title={`Meta SAGE: ${meta}%`}></div>
+      </div>
+      
+      <div className="flex justify-between mt-1.5 text-[10px] font-bold text-slate-500 uppercase">
+        <span>Realizado</span>
+        <div className="flex gap-4">
+          <span className="text-amber-600 flex items-center gap-1"><span className="w-2 h-2 bg-amber-400 rounded-full shadow-sm"></span> Mín: {min}%</span>
+          <span className="text-emerald-600 flex items-center gap-1"><span className="w-2 h-2 bg-emerald-500 rounded-full shadow-sm"></span> Meta: {meta}%</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Dashboard Component ---
+export default function App() {
+  const [compareBR, setCompareBR] = useState(true);
+
+  // Unified Data Dictionary
+  const data = {
+    go: {
+      matriculas: { total: 22892, crescimento: 49.5 },
+      emp: { ocupacao: 93.8, incrementoRenda: 31.1, prefEmpresas: 64.7 },
+      idap: { atual: 7.4, meta: 7.9, min: 7.2 },
+      custo: { atual: 9.40, meta: 8.80, max: 10.19 }, 
+      fic: { 
+        concPres: { atual: 85.2, meta: 91.0, min: 84.9 }, 
+        concEad: { atual: 56.6, meta: 75.5, min: 61.2 },
+      },
+      tec: { 
+        concPres: { atual: 46.7, meta: 65.7, min: 55.8 }, 
+        concEad: { atual: 33.9, meta: 52.5, min: 50.0 },
+      },
+      alinhamento: 99.4,
+      fidelizacao: { atual: 15.3, meta: 25.0 },
+      capacitacao: { atual: 35.0, meta: 95.1 }, 
+      digital: { atual: 11.2, meta: 10.0 },
+      microdados: {
+        unidadesAlerta: [
+          { nome: 'Faculdade Roberto Mange', indicio: 'Crítico em Todas as Modalidades (FIC/TEC)', taxa: '26% a 65%' },
+          { nome: 'Fatesg', indicio: 'Alerta Vermelho em FIC (Presencial e EaD)', taxa: '44% a 53%' },
+          { nome: 'Escola SENAI Itumbiara', indicio: 'Baixa Retenção em Cursos Técnicos', taxa: '33% a 39%' }
+        ],
+        cursosAlerta: [
+          { nome: 'Técnico em Eletrotécnica', eixo: 'TEC (Presencial e EaD)', taxa: '26% a 30%' },
+          { nome: 'Cibersegurança / Ciência de Dados', eixo: 'FIC (TI / Tecnológico)', taxa: '5% a 27%' },
+          { nome: 'Técnico em Automação Industrial', eixo: 'TEC (Presencial e EaD)', taxa: '36% a 54%' }
+        ]
+      }
+    },
+    br: {
+      matriculas: { crescimento: 10.2 },
+      emp: { ocupacao: 86.7, incrementoRenda: 24.0, prefEmpresas: 92.4 },
+      idap: 7.8,
+      custo: { valor: 14.85 },
+      alinhamento: 98.7
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans p-4 md:p-8 selection:bg-blue-200 selection:text-blue-900" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+      
+      {/* --- HEADER --- */}
+      <header className="max-w-7xl mx-auto mb-10 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200">
+        <div className="flex flex-col md:flex-row justify-between items-start gap-6">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-900 rounded-full text-xs font-black uppercase tracking-widest mb-4 shadow-sm border border-blue-200">
+              <Layers size={14} /> Painel Executivo SAGE 2026
+            </div>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 mb-3">
+              SENAI Goiás <span className="text-slate-300 font-light mx-2">|</span> <span className="bg-gradient-to-r from-blue-700 to-blue-500 bg-clip-text text-transparent">Visão Estratégica</span>
+            </h1>
+            <p className="text-slate-600 font-medium text-base md:text-lg max-w-3xl leading-relaxed">
+              Consolidação analítica do desempenho institucional. Este cockpit cruza os resultados reais de operação com as metas de qualidade, eficiência e mercado estabelecidas pelas diretrizes nacionais do Sistema de Avaliação da Gestão Escolar.
+            </p>
+          </div>
+          
+          <div className="flex flex-col items-start md:items-end gap-6 w-full md:w-auto shrink-0">
+            <img 
+              src="https://i.postimg.cc/HsxpXWs0/crti-det.png" 
+              alt="Logomarca" 
+              className="h-10 md:h-14 object-contain"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+            <button 
+              onClick={() => setCompareBR(!compareBR)}
+              className={`flex items-center gap-3 px-6 py-4 rounded-xl font-black text-sm transition-all focus:ring-4 focus:ring-blue-100 shadow-md ${
+                compareBR ? 'bg-slate-900 text-white hover:bg-slate-800 hover:shadow-lg hover:-translate-y-0.5' : 'bg-white border-2 border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+              }`}
+            >
+              <Globe2 size={20} />
+              {compareBR ? 'BENCHMARKING NACIONAL: ON' : 'ATIVAR BENCHMARK BRASIL'}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto space-y-12">
+
+        {/* --- TIER 1: HIGH LEVEL KPIs --- */}
+        <section>
+          <SectionIntro 
+            icon={Target}
+            title="Termômetro de Desempenho Institucional" 
+            description="Visão executiva das quatro forças motrizes da gestão escolar: Qualidade Educacional (IDAP), Eficiência Operacional (Custo), Atendimento ao Mercado (Ocupação) e Transformação/Escala (Matrículas)."
+            didacticText="O SAGE penaliza instituições que crescem de forma desordenada. É mandatório que a expansão de matrículas seja acompanhada pela manutenção da proficiência dos alunos (notas do SAEP) e pelo controle severo do custo por hora-aluno."
+          />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            <Card className="border-t-4 border-t-amber-500 bg-amber-50/20">
+              <div className="flex justify-between items-start mb-2">
+                <p className="text-xs font-black text-amber-800 uppercase tracking-widest">IDAP (Ind. 1)</p>
+                <SageStatusBadge atual={data.go.idap.atual} meta={data.go.idap.meta} min={data.go.idap.min} />
+              </div>
+              <div className="flex items-baseline gap-2 mb-1 mt-3">
+                <span className="text-4xl md:text-5xl font-black text-amber-700 tracking-tighter">{data.go.idap.atual}</span>
+                <span className="text-sm font-bold text-amber-600/70">/ {data.go.idap.meta}</span>
+              </div>
+              <DidacticNote>Desempenho no SAEP. Fundamental para garantir selo de qualidade acadêmica nacional.</DidacticNote>
+            </Card>
+
+            <Card className="border-t-4 border-t-purple-500">
+              <div className="flex justify-between items-start mb-2">
+                <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Custo Hora/Aluno</p>
+                <SageStatusBadge atual={data.go.custo.atual} meta={data.go.custo.meta} min={data.go.custo.max} inverse={true} />
+              </div>
+              <div className="flex items-baseline gap-1 mb-1 mt-3">
+                <span className="text-2xl font-black text-slate-400">R$</span>
+                <span className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">{data.go.custo.atual.toFixed(2).replace('.', ',')}</span>
+              </div>
+              <DidacticNote>Teto tolerável SAGE: R$ 10,19. Eficiência financeira atestada abaixo desse limite.</DidacticNote>
+            </Card>
+
+            <Card className="border-t-4 border-t-blue-500">
+              <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Ocupação Téc. (Ind. 10)</p>
+              <div className="flex items-baseline gap-1 mb-1 mt-3">
+                <span className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">{data.go.emp.ocupacao}</span>
+                <span className="text-2xl font-black text-slate-400">%</span>
+              </div>
+              {compareBR && (
+                <div className="mt-5 pt-3 border-t border-slate-100 flex justify-between items-center text-sm">
+                  <span className="text-slate-500 font-bold">Média Brasil: {data.br.emp.ocupacao}%</span>
+                  <GapBadge goValue={data.go.emp.ocupacao} brValue={data.br.emp.ocupacao} suffix="p.p" />
+                </div>
+              )}
+            </Card>
+
+            <Card className="border-t-4 border-t-emerald-500">
+              <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Expansão Matrículas</p>
+              <div className="flex items-baseline gap-1 mb-1 mt-3">
+                <span className="text-3xl font-black text-emerald-500">+</span>
+                <span className="text-4xl md:text-5xl font-black text-emerald-700 tracking-tighter">{data.go.matriculas.crescimento}</span>
+                <span className="text-2xl font-black text-emerald-500">%</span>
+              </div>
+              {compareBR && (
+                <div className="mt-5 pt-3 border-t border-slate-100 flex justify-between items-center text-sm">
+                  <span className="text-slate-500 font-bold">Média Brasil: +{data.br.matriculas.crescimento}%</span>
+                  <GapBadge goValue={data.go.matriculas.crescimento} brValue={data.br.matriculas.crescimento} suffix="p.p" />
+                </div>
+              )}
+            </Card>
+          </div>
+
+          <InteractiveInsight 
+            type="info"
+            title="A Balança Estratégica: O Trade-off da Expansão"
+            diagnostic={
+              <p>O SENAI Goiás se consolidou como uma verdadeira potência de eficiência e escala, apresentando um crescimento de matrículas quase <strong>5 vezes superior à média nacional (+49,5% vs +10,2%)</strong>, tudo isso operando com um custo hora-aluno altamente otimizado (R$ 5,45 mais barato que o Brasil). No entanto, a lei da física operacional cobra seu preço: essa tração agressiva de volume achatou a nossa margem de qualidade educacional (IDAP), que estacionou em 7.4 (apenas no limite Mínimo aceitável do SAGE, distante da meta de 7.9).</p>
+            }
+            actionPlan={
+              <>
+                <li><strong>Giro de Qualidade:</strong> É imperativo que os ganhos de eficiência financeira (sobra de caixa pelo baixo custo-hora) sejam reinvestidos imediatamente no corpo docente (Capacitação Unindústria - Ind. 7) e na infraestrutura dos laboratórios.</li>
+                <li><strong>Blindagem do SAEP:</strong> Instituir na rotina das Escolas Mistas e UEPs simulados preparatórios rigorosos, alinhados à matriz de referência do SAEP, para garantir que o aumento de turmas não signifique queda na proficiência.</li>
+              </>
+            }
+          />
+        </section>
+
+        {/* --- TIER 2: MARKET AND IMPACT (Egressos) --- */}
+        <section>
+          <SectionIntro 
+            icon={Briefcase}
+            title="Atendimento ao Mercado e Validação Externa" 
+            description="Não basta formar; é preciso transformar a realidade do aluno e da indústria. Esta seção analisa se os cursos oferecidos estão alinhados ao que a indústria precisa (Ind. 11) e se o mercado de trabalho valoriza financeiramente e culturalmente os egressos do SENAI (Ind. 10)."
+            didacticText="O SAGE 2026 exige que as Escolas não apenas ofertem cursos, mas que garantam a Empregabilidade (Ocupação). O 'Incremento da Renda' e a 'Preferência das Empresas' são proxies valiosos para entender se a marca SENAI está sendo vista como 'Commodity' ou como 'Premium' pelo empresariado local."
+          />
+          
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            {/* Ocupação e Renda */}
+            <Card className="lg:col-span-7">
+              <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider mb-6 pb-3 border-b border-slate-100 flex items-center gap-2">
+                <Target size={16} className="text-blue-600" />
+                Valorização do Egresso (Nível Médio)
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-4">
+                <div>
+                  <p className="text-sm text-slate-500 font-bold mb-2 uppercase tracking-wide">Incremento da Renda</p>
+                  <div className="flex items-end gap-3">
+                    <span className="text-4xl font-black text-emerald-600 tracking-tighter">{data.go.emp.incrementoRenda}%</span>
+                    {compareBR && <GapBadge goValue={data.go.emp.incrementoRenda} brValue={data.br.emp.incrementoRenda} suffix="p.p" />}
+                  </div>
+                  <div className="h-2 w-full bg-slate-100 mt-3 rounded-full overflow-hidden shadow-inner">
+                    <div className="h-full bg-emerald-500 rounded-full" style={{width: `${data.go.emp.incrementoRenda}%`}}></div>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500 font-bold mb-2 uppercase tracking-wide">Preferência Empresarial</p>
+                  <div className="flex items-end gap-3">
+                    <span className="text-4xl font-black text-slate-800 tracking-tighter">{data.go.emp.prefEmpresas}%</span>
+                    {compareBR && <GapBadge goValue={data.go.emp.prefEmpresas} brValue={data.br.emp.prefEmpresas} suffix="p.p" />}
+                  </div>
+                  <div className="h-2 w-full bg-slate-100 mt-3 rounded-full overflow-hidden shadow-inner">
+                    <div className="h-full bg-slate-800 rounded-full" style={{width: `${data.go.emp.prefEmpresas}%`}}></div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Alinhamento SAGE 11 */}
+            <Card className="lg:col-span-5 bg-gradient-to-br from-slate-900 to-slate-800 text-white border-0">
+              <h4 className="text-sm font-black text-slate-300 uppercase tracking-wider mb-6 pb-3 border-b border-slate-700/50 flex items-center gap-2">
+                <Cpu size={16} className="text-blue-400" />
+                Alinhamento Industrial (SAGE 11)
+              </h4>
+              <div className="text-center py-6">
+                <span className="block text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-4 tracking-tighter drop-shadow-sm">{data.go.alinhamento}%</span>
+                <span className="text-sm font-medium text-slate-300 px-4 block">
+                  Matrículas rigorosamente focadas nas cadeias produtivas e necessidades *core* da indústria goiana.
+                </span>
+              </div>
+              {compareBR && (
+                <div className="mt-2 text-center text-xs font-bold text-slate-400 bg-slate-950/50 py-2.5 rounded-lg border border-slate-700/50">
+                  Referência Nacional: {data.br.alinhamento}%
+                </div>
+              )}
+            </Card>
+          </div>
+
+          <InteractiveInsight 
+            type="warning"
+            title="Análise Competitiva: A Armadilha da Comoditização"
+            diagnostic={
+              <p>Os dados revelam um paradoxo comercial perigoso para a marca. Goiás possui um portfólio quase 100% voltado para a indústria (Ind. 11), a taxa de emprego é invejável (93,8%) e o diploma causa forte impacto financeiro na vida do egresso (31,1% de aumento de renda). <strong>No entanto, a 'Preferência das Empresas' pelo SENAI-GO (64,7%) é quase 30 pontos percentuais menor que a média nacional (92,4%).</strong> Conclusão estratégica: A indústria está contratando nossos alunos pela carência de mão de obra e necessidade produtiva, mas não necessariamente enxergam o SENAI-GO como a "boutique" ou "selo premium" definitivo de formação como ocorre no resto do país.</p>
+            }
+            actionPlan={
+              <>
+                <li><strong>Posicionamento de Marca B2B:</strong> Reativar os Comitês Técnicos Setoriais não apenas para validar cursos, mas para criar relacionamento de alto nível com os Diretores de RH e CEO's das grandes indústrias de Goiás.</li>
+                <li><strong>Inovação com o SAGA (Ind. 12):</strong> Aumentar vertiginosamente o uso da plataforma SAGA SENAI de Inovação. Ao colocar os alunos para resolverem problemas *reais* das indústrias locais ainda durante o curso, o empresário vivencia o diferencial intelectual da instituição na prática, elevando a percepção da marca.</li>
+              </>
+            }
+          />
+        </section>
+
+        {/* --- TIER 3: LTV & ECOSYSTEM --- */}
+        <section>
+          <SectionIntro 
+            icon={Users}
+            title="Ciclo de Vida do Aluno, Capacitação e Ecossistema" 
+            description="Mede a vitalidade interna da instituição. Uma escola de excelência retém o aluno para o aprendizado contínuo (Life-Time Value), capacita constantemente seus docentes na Unindústria e garante que a jornada educacional ocorra de forma conectada em plataformas digitais."
+            didacticText="O Modelo SAGE integra três variáveis que determinam o futuro sustentável da escola: O aluno volta a estudar conosco (Ind. 2)? O professor está atualizado pedagogicamente e tecnologicamente com as diretrizes do DN (Ind. 7)? A sala de aula física está integrada ao Meu SENAI digital (Ind. 14)?"
+          />
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <Card className="border-t-4 border-t-emerald-500 group hover:bg-emerald-50/10">
+              <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3">Fidelização (SAGE 2)</h4>
+              <div className="flex items-baseline gap-2 mb-2">
+                <p className="text-4xl font-black text-slate-900 tracking-tighter">{data.go.fidelizacao.atual}%</p>
+              </div>
+              <p className="text-[10px] font-bold text-emerald-600 bg-emerald-50 inline-block px-2 py-1 rounded mb-3 border border-emerald-100">Meta Desejada SAGE: {data.go.fidelizacao.meta}%</p>
+              <p className="text-xs font-medium text-slate-600 leading-relaxed">Taxa de alunos concluintes que retornam para realizar novos cursos. Fundamental para reduzir Custo de Aquisição (CAC).</p>
+            </Card>
+
+            <Card className="border-t-4 border-t-amber-500 group hover:bg-amber-50/10">
+              <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3">Capacitação (SAGE 7)</h4>
+              <div className="flex items-baseline gap-2 mb-2">
+                <p className="text-4xl font-black text-slate-900 tracking-tighter">{data.go.capacitacao.atual}%</p>
+              </div>
+              <p className="text-[10px] font-bold text-amber-600 bg-amber-50 inline-block px-2 py-1 rounded mb-3 border border-amber-100">Mínimo: 40h/ano na Unindústria</p>
+              <p className="text-xs font-medium text-slate-600 leading-relaxed">Percentual de colaboradores engajados. Atingir a Meta Nível 5 exige engajamento maciço superior a 95% do quadro.</p>
+            </Card>
+
+            <Card className="border-t-4 border-t-purple-500 group hover:bg-purple-50/10">
+              <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3">Ecossistema Digital (SAGE 14)</h4>
+              <div className="flex items-baseline gap-2 mb-2">
+                <p className="text-4xl font-black text-slate-900 tracking-tighter">{data.go.digital.atual}%</p>
+              </div>
+              <p className="text-[10px] font-bold text-purple-600 bg-purple-50 inline-block px-2 py-1 rounded mb-3 border border-purple-100">Meta SAGE (Nível 5): &gt;10%</p>
+              <p className="text-xs font-medium text-slate-600 leading-relaxed">Penetração real das tecnologias e plataformas SUEPS no dia a dia da aprendizagem dos alunos matriculados.</p>
+            </Card>
+
+          </div>
+
+          <InteractiveInsight 
+            type="success"
+            title="Estratégia de LTV (Life-Time Value) Educacional"
+            diagnostic={
+              <p>A correlação entre esses três indicadores dita a sustentabilidade futura da operação. O DR Goiás atrai muito bem novos alunos (graças ao forte crescimento), porém o desafio atual é construir uma <strong>Jornada de Aprendizado Contínuo (Long Life Learning)</strong>. O indicador de Fidelização atual (15,3%) mostra que a imensa maioria dos alunos passa pelo SENAI, conclui seu curso básico e não retorna, evidenciando uma perda de faturamento "dentro de casa".</p>
+            }
+            actionPlan={
+              <>
+                <li><strong>Automação de Upsell (Cross-selling de Trilhas):</strong> Utilizar sistemas de CRM para enviar ofertas direcionadas no momento exato em que o aluno forma no FIC. Exemplo: Concluiu Eletricista Básico? Oferecer imediatamente matrícula com 20% off para Técnico em Eletrotécnica.</li>
+                <li><strong>Capacitação Docente Focada em Retenção:</strong> Os 40h/ano exigidos pelo SAGE 7 devem priorizar trilhas da Unindústria sobre "Mentoria", "Engajamento Digital" e "Acolhimento". O professor precisa ser o primeiro vendedor do próximo curso do aluno.</li>
+              </>
+            }
+          />
+        </section>
+
+        {/* --- TIER 4: SAGE DEEP DIVES (Retenção Acadêmica) --- */}
+        <section>
+          <SectionIntro 
+            icon={BarChart3}
+            title="Diagnóstico de Conclusão e Evasão Acadêmica" 
+            description="O calcanhar de Aquiles da gestão educacional. O SAGE 2026 estipula metas agressivas e limites mínimos inegociáveis para a taxa de alunos que iniciam e terminam seus cursos (Indicadores 3, 4, 5 e 6). É aqui que se mede o desperdício sistêmico."
+            didacticText="O acompanhamento deve ser feito sob duas óticas: Nível de Ensino (O compromisso em um curso Rápido FIC é diferente de um Longo TEC) e Modalidade (A jornada Presencial retém organicamente mais do que a jornada solitária do EaD). As réguas mudam para cada cruzamento."
+          />
+          
+          <Card className="h-full border-slate-200 shadow-md p-6 md:p-8">
+            <div className="space-y-10">
+              
+              {/* FIC */}
+              <div className="p-6 md:p-8 bg-slate-50/50 border border-slate-200 rounded-2xl shadow-sm">
+                <h4 className="text-base font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-3 border-b border-slate-200 pb-3">
+                  <div className="p-1.5 bg-blue-100 rounded-lg"><span className="w-2.5 h-2.5 bg-blue-600 rounded-full block"></span></div> 
+                  Cursos de Formação Inicial e Continuada (FIC)
+                </h4>
+                <SageProgressBar 
+                  label="Conclusão Modalidade Presencial (SAGE Ind. 3)" 
+                  atual={data.go.fic.concPres.atual} 
+                  meta={data.go.fic.concPres.meta} 
+                  min={data.go.fic.concPres.min} 
+                  colorClass="bg-blue-600" 
+                />
+                <div className="mt-8">
+                  <SageProgressBar 
+                    label="Conclusão Modalidade Semipresencial / EaD (SAGE Ind. 5)" 
+                    atual={data.go.fic.concEad.atual} 
+                    meta={data.go.fic.concEad.meta} 
+                    min={data.go.fic.concEad.min} 
+                    colorClass="bg-blue-400" 
+                  />
+                </div>
+              </div>
+
+              {/* TEC */}
+              <div className="p-6 md:p-8 bg-slate-50/50 border border-slate-200 rounded-2xl shadow-sm">
+                <h4 className="text-base font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-3 border-b border-slate-200 pb-3">
+                  <div className="p-1.5 bg-purple-100 rounded-lg"><span className="w-2.5 h-2.5 bg-purple-600 rounded-full block"></span></div> 
+                  Cursos Técnicos de Nível Médio
+                </h4>
+                <SageProgressBar 
+                  label="Conclusão Modalidade Presencial (SAGE Ind. 4)" 
+                  atual={data.go.tec.concPres.atual} 
+                  meta={data.go.tec.concPres.meta} 
+                  min={data.go.tec.concPres.min} 
+                  colorClass="bg-purple-600" 
+                />
+                <div className="mt-8">
+                  <SageProgressBar 
+                    label="Conclusão Modalidade Semipresencial / EaD (SAGE Ind. 6)" 
+                    atual={data.go.tec.concEad.atual} 
+                    meta={data.go.tec.concEad.meta} 
+                    min={data.go.tec.concEad.min} 
+                    colorClass="bg-purple-400" 
+                  />
+                </div>
+              </div>
+
+            </div>
+
+            <InteractiveInsight 
+              type="danger"
+              title="Alerta Vermelho SAGE: Colapso Retentivo nos Cursos Técnicos"
+              diagnostic={
+                <p>Os dados de conclusão expõem a maior vulnerabilidade operacional e estratégica de Goiás frente ao pacto SAGE 2026. <strong>A instituição encontra-se na zona de alerta (abaixo do Mínimo/Nível 1) em ambos os indicadores de Cursos Técnicos (Ind. 4 Presencial e Ind. 6 EaD), e também falha no mínimo exigido para o FIC EaD (Ind. 5).</strong> Apenas o formato "curto e presencial" (FIC Presencial) performa com segurança. O distanciamento digital e a duração longa da jornada estão triturando as turmas antes da formatura.</p>
+              }
+              actionPlan={
+                <>
+                  <li><strong>Força-Tarefa de Retenção Técnica:</strong> Implementar urgentemente um comitê gestor focado unicamente nos Itinerários Técnicos. A evasão de 35% no presencial sugere problemas na aderência do design instrucional ou choque de expectativa do aluno com o mercado real.</li>
+                  <li><strong>Onboarding e Tutoria Preditiva EaD:</strong> A modalidade a distância está sangrando (evasão &gt; 40%). Instituir a figura do *Customer Success Educacional*. Se o aluno não logar no AVA nos primeiros 10 dias, acionar protocolos de resgate via WhatsApp. Não se pode gerir EaD apenas despejando conteúdo na plataforma.</li>
+                  <li><strong>Acolhimento Biopsicossocial:</strong> Como o abandono técnico costuma ter causas socioeconômicas, reforçar a comunicação das políticas de auxílio e flexibilização da rede de apoio ao aluno das UEPs.</li>
+                </>
+              }
+            />
+          </Card>
+        </section>
+
+        {/* --- TIER 5: MICRODADOS (UNIDADES E CURSOS) --- */}
+        <section>
+          <SectionIntro 
+            icon={AlertTriangle}
+            title="Raio-X da Evasão: Unidades e Portfólio Crítico" 
+            description="Aprofundamento nos microdados de Conclusão (FIC e TEC). O SAGE avalia o DR de forma consolidada, mas a intervenção deve ser cirúrgica. Identificamos as Escolas e Eixos Tecnológicos específicos que estão tracionando a média estadual para a zona de penalização (-5 pontos)."
+            didacticText="A pontuação SAGE de um indicador cai para o negativo quando as taxas descem abaixo das faixas mínimas de tolerância (faixa vermelha < 79.99%). Atuar estritamente nas unidades de maior volumetria com baixas taxas de sucesso é a engenharia mais rápida para reverter o score geral do Departamento Regional."
+          />
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* Unidades */}
+            <Card className="border-t-4 border-t-red-500 shadow-md">
+              <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider mb-6 pb-3 border-b border-slate-100 flex items-center gap-2">
+                <Building2 size={18} className="text-red-600" />
+                Top 3 Unidades em Alerta (Gargalo)
+              </h4>
+              <div className="space-y-4">
+                {data.go.microdados.unidadesAlerta.map((unidade, idx) => (
+                  <div key={idx} className="p-4 bg-red-50/50 border border-red-100 rounded-xl hover:bg-red-50 transition-colors">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="font-bold text-slate-900">{unidade.nome}</span>
+                      <span className="text-xs font-black text-red-700 bg-red-100 px-2 py-1 rounded">{unidade.taxa}</span>
+                    </div>
+                    <p className="text-xs font-medium text-slate-600">{unidade.indicio}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            {/* Cursos */}
+            <Card className="border-t-4 border-t-orange-500 shadow-md">
+              <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider mb-6 pb-3 border-b border-slate-100 flex items-center gap-2">
+                <BookX size={18} className="text-orange-600" />
+                Portfólio com Maior Evasão
+              </h4>
+              <div className="space-y-4">
+                {data.go.microdados.cursosAlerta.map((curso, idx) => (
+                  <div key={idx} className="p-4 bg-orange-50/50 border border-orange-100 rounded-xl hover:bg-orange-50 transition-colors">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="font-bold text-slate-900">{curso.nome}</span>
+                      <span className="text-xs font-black text-orange-700 bg-orange-100 px-2 py-1 rounded">{curso.taxa}</span>
+                    </div>
+                    <p className="text-xs font-medium text-slate-600">Eixo: {curso.eixo}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+
+          <InteractiveInsight 
+            type="danger"
+            title="Diagnóstico Cirúrgico: O Efeito 'Roberto Mange' e a Crise em TI"
+            diagnostic={
+              <div className="space-y-2">
+                <p>Os microdados revelam que o sangramento nos indicadores de conclusão não é generalizado, possuindo focos gravíssimos:</p>
+                <ul className="list-disc pl-5 mt-2 space-y-1">
+                  <li><strong>A Faculdade de Tecnologia SENAI Roberto Mange</strong> encontra-se na faixa vermelha (penalização de -5 pontos) de forma transversal, impactando FIC Presencial (65%), FIC EaD (35%), TEC Presencial (29%) e TEC EaD (26%). O impacto consolidado dessa unidade afunda a média estadual.</li>
+                  <li><strong>Cursos Tecnológicos (TI):</strong> Formações como <em>Cibersegurança (5,3%)</em>, <em>Ciência de Dados (27,9%)</em> e <em>Chatbots IA (36%)</em> possuem taxas de conclusão catastróficas.</li>
+                  <li><strong>Eixo Eletroeletrônica e Automação:</strong> O "Core" histórico do SENAI (Téc. em Eletrotécnica e Automação Industrial) lidera a evasão técnica (Presencial e EaD), não passando de 36% de conclusão nos piores cenários.</li>
+                </ul>
+              </div>
+            }
+            actionPlan={
+              <>
+                <li><strong>Intervenção na Unidade Roberto Mange:</strong> Criar um grupo de trabalho da Direção Regional imerso fisicamente na Faculdade para uma auditoria de processos e gestão de clima, implementando metas de recuperação semanais de alunos.</li>
+                <li><strong>Filtro de Entrada e Nivelamento para TI:</strong> A evasão extrema (5% de conclusão) em Cibersegurança e afins aponta frustração e choque com a complexidade analítica. Implementar testes de lógica básicos pré-matrícula ou nivelamento gamificado (Bootcamp) na primeira semana.</li>
+                <li><strong>Revisão Prática da Eletrotécnica:</strong> Para combater o desengajamento nas modalidades de Eletrotécnica e Automação, modernizar os laboratórios virtuais e exigir checkpoints presenciais mais frequentes e "mão na massa", conectando o aluno ao mercado real mais cedo.</li>
+              </>
+            }
+          />
+        </section>
+
+      </main>
+    </div>
+  );
+}
